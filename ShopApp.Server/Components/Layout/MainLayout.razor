@@ -7,14 +7,20 @@
 
     <main>
         <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+            <a href="/account/login">Sign Up</a>
         </div>
 
-        <article class="content px-4">
+        <div class="body-content">
             @Body
-        </article>
+        </div>
     </main>
 </div>
+
+<MudBlazor.MudThemeProvider />
+<MudBlazor.MudDialogProvider />
+<MudBlazor.MudPopoverProvider />
+<!-- Add the MudDialogProvider here -->
+<MudDialogProvider />
 
 <div id="blazor-error-ui" data-nosnippet>
     An unhandled error has occurred.

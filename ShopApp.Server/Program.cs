@@ -1,17 +1,39 @@
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.ResponseCompression; // Add this for Blazor WebAssembly
 using Microsoft.EntityFrameworkCore;
+using MudBlazor.Services;
 using ShopApp.Core;
 using ShopApp.Infrastructure;
 using ShopApp.Server.Components;
 using ShopApp.Server.Components.Account;
+using ShopApp.UseCases.Services.Book;
 using ShopApp.UseCases.Services.Category;
+using ShopApp.Client;
+
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveWebAssemblyComponents()
+    .AddInteractiveServerComponents()
     .AddAuthenticationStateSerialization();
+
+//builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<ApplicationUserHandler>());
+builder.Services.AddMudServices();
+
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddHttpContextAccessor();
+
+builder.Services.AddServerSideBlazor(options =>
+{
+    options.DetailedErrors = true;
+});
+
+builder.Services.AddControllers().AddJsonOptions(x =>
+    x.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles);
+
 
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityUserAccessor>();
@@ -35,9 +57,25 @@ builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.Requ
     .AddSignInManager()
     .AddDefaultTokenProviders();
 
+
+builder.Services.AddScoped<HttpClient>(sp =>
+{
+    return new HttpClient
+    {
+        BaseAddress = new Uri("https://localhost:7027/")
+    };
+});
+
+
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
 builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IBookService, BookService>();
+builder.Services.AddMudServices();
+
+
+
+
 
 // Add Blazor WebAssembly services
 builder.Services.AddResponseCompression(opts =>
@@ -51,6 +89,7 @@ builder.Services.AddSwaggerGen();
 
 
 var app = builder.Build();
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -84,7 +123,8 @@ app.UseAntiforgery();
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveWebAssemblyRenderMode()
-    .AddAdditionalAssemblies(typeof(ShopApp.Client._Imports).Assembly);
+    .AddInteractiveServerRenderMode()
+   .AddAdditionalAssemblies(typeof(ShopApp.Client._Imports).Assembly);
 
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
