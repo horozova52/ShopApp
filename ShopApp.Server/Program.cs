@@ -20,7 +20,6 @@ builder.Services.AddRazorComponents()
     .AddAuthenticationStateSerialization();
 
 //builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<ApplicationUserHandler>());
-builder.Services.AddMudServices();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

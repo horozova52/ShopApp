@@ -1,10 +1,7 @@
-﻿
-
- @using ShopApp.Core
+﻿@using ShopApp.Core
 @using MudBlazor
 @using ShopApp.UseCases.Services
 @inject HttpClient Http
-@implements IDisposable
 
 <MudDialog>
     <DialogContent>
@@ -39,7 +36,7 @@
                             <MudSelectItem Value="@cat.Id">@cat.Name</MudSelectItem>
                 }
                     </MudSelect>
-                </MudItem>
+                </MudItem> 
                 
             </MudGrid>
         </EditForm>
@@ -52,54 +49,44 @@
 
 @code {
     [CascadingParameter]
-    public MudDialogInstance MudDialog { get; set; } = default!;
+    MudDialogInstance MudDialog { get; set; }
 
     [Parameter]
     public Guid Id { get; set; }
 
     [Parameter]
-    public Func<Task>? Callback { get; set; }
+    public Func<Task> Callback { get; set; }
 
-    // Model
     public Book book = new();
 
-    // Categories
     private List<Category> categories = new();
 
-    // Flag to avoid "ObjectDisposedException"
-    private bool _disposed;
-
-    // Cancel the dialog
     void Cancel() => MudDialog.Cancel();
+
+    private bool _disposed;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            // Load categories if needed
-            categories = await Http.GetFromJsonAsync<List<Category>>("api/category") ?? new();
+            categories = await Http.GetFromJsonAsync<List<Category>>("api/category");
 
             if (Id != Guid.Empty)
             {
-                // Edit mode
                 var existingBook = await Http.GetFromJsonAsync<Book>($"api/book/{Id}");
                 book = existingBook ?? new Book();
-                Console.WriteLine($"[AddEditBookDialog] Editing Book: {book.Id}, Title={book.Title}");
             }
             else
             {
-                // Add mode
-                Console.WriteLine("[AddEditBookDialog] New Book mode");
                 book = new Book
                     {
-                    // Preselect a category if needed
                         CategoryId = categories.FirstOrDefault()?.Id ?? string.Empty
                     };
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($" Error initializing dialog: {ex.Message}");
+            Console.WriteLine($"🔥 Eroare la inițializare dialog: {ex.Message}");
         }
     }
 
@@ -107,27 +94,14 @@
     {
         try
         {
-            // Avoid operations if already disposed
-            if (_disposed) return;
-
             if (Id != Guid.Empty)
-            {
-                // PUT request
-                Console.WriteLine($"[AddEditBookDialog] Updating book {book.Id}");
                 await Http.PutAsJsonAsync($"api/book/{book.Id}", book);
-            }
             else
-            {
-                // POST request
-                Console.WriteLine("[AddEditBookDialog] Creating new book");
                 await Http.PostAsJsonAsync("api/book", book);
-            }
 
-            // Invoke callback for refresh
             if (Callback != null)
                 await Callback.Invoke();
 
-            // Close the dialog
             MudDialog.Close();
         }
         catch (Exception ex)
@@ -135,12 +109,4 @@
             Console.WriteLine($"[AddEditBookDialog] Error on save: {ex.Message}");
         }
     }
-
-    // Proper implementation of IDisposable
-    public void Dispose()
-    {
-        _disposed = true;
-        Console.WriteLine("[AddEditBookDialog] Disposing resources...");
-    }
 }
-

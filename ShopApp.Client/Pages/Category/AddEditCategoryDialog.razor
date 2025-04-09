@@ -1,0 +1,96 @@
+﻿@using ShopApp.Core
+@using MudBlazor
+@using ShopApp.UseCases.Services
+@inject HttpClient Http
+
+<MudDialog>
+    <DialogContent>
+        <EditForm Model="category" OnValidSubmit="Save">
+            <DataAnnotationsValidator />
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="category.Id"
+                                  Label="Id"
+                                  InputType="InputType.Number"
+                                  Variant="Variant.Outlined"
+                                  Required="true" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="category.Name"
+                                  Label="Name"
+                                  Variant="Variant.Outlined"
+                                  Required="true" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="category.Description"
+                                  Label="Description"
+                                  Variant="Variant.Outlined"
+                                  Required="true" />
+                </MudItem>
+
+            </MudGrid>
+        </EditForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Save" Variant="Variant.Filled" Color="Color.Primary">Save</MudButton>
+        <MudButton OnClick="Cancel" Variant="Variant.Filled">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public string Id { get; set; }
+
+    [Parameter]
+    public Func<Task> Callback { get; set; }
+
+    public Category category = new();
+
+    private List<Category> categories = new();
+
+    void Cancel() => MudDialog.Cancel();
+
+    private bool _disposed;
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            if (!string.IsNullOrEmpty(Id))
+            {
+                var existing = await Http.GetFromJsonAsync<Category>($"api/category/{Id}");
+                category = existing ?? new Category();
+            }
+            else
+            {
+                category = new Category();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[CategoryDialog] Init error: {ex.Message}");
+        }
+    }
+
+    private async Task Save()
+    {
+        try
+        {
+            if (!string.IsNullOrEmpty(Id))
+                await Http.PutAsJsonAsync($"api/category/{category.Id}", category);
+            else
+                await Http.PostAsJsonAsync("api/category", category);
+
+            if (Callback != null)
+                await Callback.Invoke();
+
+            MudDialog.Close();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[AddEditCategoryDialog] Error on save: {ex.Message}");
+        }
+    }
+}

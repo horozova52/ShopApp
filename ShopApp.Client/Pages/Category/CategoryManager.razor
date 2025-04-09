@@ -1,4 +1,4 @@
-﻿@page "/books"
+﻿@page "/1"
 
 @using ShopApp.Core
 @using MudBlazor
@@ -11,10 +11,11 @@
 @inject IDialogService DialogService
 
 
-@rendermode InteractiveServer 
+@rendermode InteractiveServer
 
 
 <MudDialogProvider />
+<MudPopoverProvider />
 
 @if (isLoading)
 {
@@ -26,28 +27,30 @@ else
 {
     <div class="container">
         <div style="text-align: right; margin-bottom: 20px;">
-            <button class="btn-primary" @onclick="AddBook">Adaugă Carte</button>
+            <button class="btn-primary" @onclick="AddCategory">Adaugă Categorie</button>
         </div>
-        <h2>All Books</h2>
+        <h2>Category</h2>
         <table class="table">
             <thead>
                 <tr>
-                    <th>Denumire</th>
-                    <th>Autor</th>
-                    <th>Preț</th>
+                    <th>Id</th>
+                    <th>Categoria</th>
+                    <th>Descriere</th>
+                    <th>Nr.carți</th>
                     <th>Acțiuni</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach (var book in books)
+                @foreach (var category in categories)
                 {
                     <tr>
-                        <td>@book.Title</td>
-                        <td>@book.Author</td>
-                        <td>@book.Price</td>
+                        <td>@category.Id</td>
+                        <td>@category.Name</td>
+                        <td>@category.Description</td>
+                        <td>@(category.Books?.Count ?? 0)</td>
                         <td class="actions">
-                            <button class="btn-success" @onclick="@(() => EditBook(book.Id))">Editează</button>
-                            <button class="btn-danger" @onclick="@(() => DeleteAsync(book.Id))">Șterge</button>
+                            <button class="btn-success" @onclick="@(() => EditCategory(category.Id))">Editează</button>
+                            <button class="btn-danger" @onclick="@(() => DeleteAsync(category.Id))">Șterge</button>
                         </td>
                     </tr>
                 }
@@ -58,7 +61,7 @@ else
 
 @code {
     private bool isLoading = true;
-    private List<Book> books = new List<Book>();
+    private List<Category> categories = new List<Category>();
 
     protected override async Task OnInitializedAsync()
     {
@@ -68,33 +71,33 @@ else
 
     private async Task LoadData()
     {
-        var result = await bookService.GetAllAsync();
-        books = result ?? new List<Book>();
+        var result = await categoryService.GetAllAsync();
+        categories = result ?? new List<Category>();
     }
 
-    private async Task DeleteAsync(Guid id)
+    private async Task DeleteAsync(string id)
     {
-        await bookService.DeleteAsync(id);
+        await categoryService.DeleteAsync(id);
         await LoadData();
     }
 
-    private void AddBook()
+    private void AddCategory()
     {
         var parameters = new DialogParameters
         {
             { "Callback", new Func<Task>(LoadData) }
         };
-        DialogService.Show<AddEditBookDialog>("Adaugă Carte", parameters);
+        DialogService.Show<AddEditCategoryDialog>("Adaugă Categoria", parameters);
     }
 
-    private void EditBook(Guid bookId)
+    private void EditCategory(string Id)
     {
         var parameters = new DialogParameters
         {
-            { "Id", bookId },
+            { "Id", Id },
             { "Callback", new Func<Task>(LoadData) }
         };
-        DialogService.Show<AddEditBookDialog>("Editează Carte", parameters);
+        DialogService.Show<AddEditCategoryDialog>("Editează Categoria", parameters);
     }
 }
 
