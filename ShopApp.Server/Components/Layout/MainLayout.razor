@@ -16,11 +16,15 @@
     </main>
 </div>
 
-<MudBlazor.MudThemeProvider />
-<MudBlazor.MudDialogProvider />
-<MudBlazor.MudPopoverProvider />
-<!-- Add the MudDialogProvider here -->
+@* Required *@
+<MudThemeProvider />
+<MudPopoverProvider />
+
+@* Needed for dialogs *@
 <MudDialogProvider />
+
+@* Needed for snackbars *@
+<MudSnackbarProvider />
 
 <div id="blazor-error-ui" data-nosnippet>
     An unhandled error has occurred.
