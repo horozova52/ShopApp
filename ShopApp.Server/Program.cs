@@ -9,6 +9,7 @@ using ShopApp.Server.Components.Account;
 using ShopApp.UseCases.Services.Book;
 using ShopApp.UseCases.Services.Category;
 using ShopApp.Client;
+using ShopApp.UseCases.Services.Email;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -67,6 +68,7 @@ builder.Services.AddScoped<HttpClient>(sp =>
 
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IBookService, BookService>();

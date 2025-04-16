@@ -8,5 +8,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 {
     public DbSet<Book> Books { get; set; }
     public DbSet<Category> Categories { get; set; }
+    public DbSet<EmailMessage> EmailMessages { get; set; }
 }
 
