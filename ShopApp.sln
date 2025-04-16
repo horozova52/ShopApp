@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShopApp.Core", "ShopApp.Cor
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShopApp.UseCases", "ShopApp.UseCases\ShopApp.UseCases.csproj", "{2AB16278-82B2-44D9-AC90-99FBF40C474A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShopApp.Shared", "ShopApp.Shared\ShopApp.Shared.csproj", "{95C37C2D-D51B-46A7-A5D1-A8949AF1137E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{2AB16278-82B2-44D9-AC90-99FBF40C474A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2AB16278-82B2-44D9-AC90-99FBF40C474A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2AB16278-82B2-44D9-AC90-99FBF40C474A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{95C37C2D-D51B-46A7-A5D1-A8949AF1137E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{95C37C2D-D51B-46A7-A5D1-A8949AF1137E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{95C37C2D-D51B-46A7-A5D1-A8949AF1137E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{95C37C2D-D51B-46A7-A5D1-A8949AF1137E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

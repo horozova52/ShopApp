@@ -72,10 +72,6 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IBookService, BookService>();
 builder.Services.AddMudServices();
 
-
-
-
-
 // Add Blazor WebAssembly services
 builder.Services.AddResponseCompression(opts =>
 {

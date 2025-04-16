@@ -2,6 +2,8 @@
 
 @using ShopApp.Core
 @using MudBlazor
+@using ShopApp.Shared.DTO
+@using ShopApp.UseCases.Mapping
 @using ShopApp.UseCases.Services.Book
 @using ShopApp.UseCases.Services.Category
 
@@ -42,12 +44,12 @@ else
             </thead>
             <tbody>
                 @foreach (var book in books)
-                {
+               {
                     <tr>
                         <td>@book.Title</td>
                         <td>@book.Author</td>
                         <td>@book.Price</td>
-                        <td>@book.Category.Name</td>
+                        <td>@book.CategoryName</td>
                         <td class="actions">
                             <button class="btn-success" @onclick="@(() => EditBook(book.Id))">Editează</button>
                             <button class="btn-danger" @onclick="@(() => DeleteAsync(book.Id))">Șterge</button>
@@ -61,7 +63,7 @@ else
 
 @code {
     private bool isLoading = true;
-    private List<Book> books = new List<Book>();
+    private List<BookDTO> books = new List<BookDTO>();
 
     protected override async Task OnInitializedAsync()
     {
@@ -71,9 +73,10 @@ else
 
     private async Task LoadData()
     {
-        var result = await bookService.GetAllAsync();
-        books = result ?? new List<Book>();
+        var result = await bookService.GetAllAsync(); // List<Book>
+        books = result?.Select(b => BookMapper.ToDto(b)).ToList() ?? new List<BookDTO>();
     }
+
 
     private async Task DeleteAsync(Guid id)
     {

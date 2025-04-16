@@ -1,18 +1,15 @@
 ﻿@page "/1"
 
-@using ShopApp.Core
+@using ShopApp.Shared.DTO
 @using MudBlazor
 @using ShopApp.UseCases.Services.Book
 @using ShopApp.UseCases.Services.Category
-
 
 @inject IBookService bookService
 @inject ICategoryService categoryService
 @inject IDialogService DialogService
 
-
 @rendermode InteractiveServer
-
 
 <MudDialogProvider />
 <MudPopoverProvider />
@@ -33,10 +30,8 @@ else
         <table class="table">
             <thead>
                 <tr>
-                    <th>Id</th>
                     <th>Categoria</th>
                     <th>Descriere</th>
-                    <th>Nr.carți</th>
                     <th>Acțiuni</th>
                 </tr>
             </thead>
@@ -44,12 +39,11 @@ else
                 @foreach (var category in categories)
                 {
                     <tr>
-                        <td>@category.Id</td>
                         <td>@category.Name</td>
                         <td>@category.Description</td>
-                        <td>@(category.Books?.Count ?? 0)</td>
                         <td class="actions">
                             <button class="btn-success" @onclick="@(() => EditCategory(category.Id))">Editează</button>
+                            <button class="btn-primary" @onclick="@(() => ViewBooks(category.Id))">Vezi cărțile</button>
                             <button class="btn-danger" @onclick="@(() => DeleteAsync(category.Id))">Șterge</button>
                         </td>
                     </tr>
@@ -61,7 +55,7 @@ else
 
 @code {
     private bool isLoading = true;
-    private List<Category> categories = new List<Category>();
+    private List<CategoryDTO> categories = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -72,10 +66,10 @@ else
     private async Task LoadData()
     {
         var result = await categoryService.GetAllAsync();
-        categories = result ?? new List<Category>();
+        categories = result ?? new List<CategoryDTO>();
     }
 
-    private async Task DeleteAsync(string id)
+    private async Task DeleteAsync(Guid id)
     {
         await categoryService.DeleteAsync(id);
         await LoadData();
@@ -90,7 +84,7 @@ else
         DialogService.Show<AddEditCategoryDialog>("Adaugă Categoria", parameters);
     }
 
-    private void EditCategory(string Id)
+    private void EditCategory(Guid Id)
     {
         var parameters = new DialogParameters
         {
@@ -99,5 +93,14 @@ else
         };
         DialogService.Show<AddEditCategoryDialog>("Editează Categoria", parameters);
     }
-}
 
+    private void ViewBooks(Guid categoryId)
+    {
+        var parameters = new DialogParameters
+        {
+            { "CategoryId", categoryId }
+        };
+
+        DialogService.Show<ViewBooksDialog>("Cărți din Categorie", parameters);
+    }
+}

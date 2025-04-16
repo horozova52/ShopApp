@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ShopApp.Core
+namespace ShopApp.Shared.DTO
 {
-    public class Book
+    public class BookDTO
     {
         public Guid Id { get; set; }
         public string Title { get; set; }
@@ -14,6 +14,7 @@ namespace ShopApp.Core
         public string? Description { get; set; }
         public decimal Price { get; set; }
         public Guid CategoryId { get; set; }
-        public Category? Category { get; set; }
+        public string? CategoryName { get; set; }
+
     }
 }

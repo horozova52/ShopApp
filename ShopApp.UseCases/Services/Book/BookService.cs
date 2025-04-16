@@ -23,12 +23,24 @@ namespace ShopApp.UseCases.Services.Book
             _context.Books.Add(book);
             await _context.SaveChangesAsync();
         }
+
+
         // This method updates an existing book in the database.
         public async Task UpdateAsync(Core.Book book)
         {
+            if (book.Category != null && book.Category.Id != Guid.Empty)
+            {
+                var existingCategory = await _context.Categories.FindAsync(book.Category.Id);
+                if (existingCategory != null)
+                {
+                    book.Category = existingCategory;
+                }
+            }
+
             _context.Books.Update(book);
             await _context.SaveChangesAsync();
         }
+
         // This method deletes a book by its ID from the database.
         public async Task DeleteAsync(Guid id)
         {

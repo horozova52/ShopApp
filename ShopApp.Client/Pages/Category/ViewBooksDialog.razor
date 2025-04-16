@@ -1,0 +1,46 @@
+﻿@using ShopApp.Core
+@using ShopApp.Shared.DTO
+@inject HttpClient Http
+
+<MudDialog>
+    <DialogContent>
+        <MudText Typo="Typo.h6">Cărțile din categoria: @(category?.Name ?? "N/A")</MudText>
+        <MudTable Items="books">
+            <HeaderContent>
+                <MudTh>Titlu</MudTh>
+                <MudTh>Autor</MudTh>
+                <MudTh>Preț</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Titlu">@context.Title</MudTd>
+                <MudTd DataLabel="Autor">@context.Author</MudTd>
+                <MudTd DataLabel="Preț">@context.Price</MudTd>
+            </RowTemplate>
+        </MudTable>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Primary" OnClick="Close">Închide</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    public MudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public Guid CategoryId { get; set; }
+
+    private List<BookDTO> books = new();
+    private CategoryDTO? category;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Fetch category details
+        category = await Http.GetFromJsonAsync<CategoryDTO>($"api/category/{CategoryId}");
+
+        // Fetch books in the category
+        books = await Http.GetFromJsonAsync<List<BookDTO>>($"api/category/{CategoryId}/books") ?? new();
+    }
+
+    void Close() => MudDialog.Close();
+}

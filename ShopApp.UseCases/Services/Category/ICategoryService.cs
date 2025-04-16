@@ -1,12 +1,12 @@
-﻿using ShopApp.Core;
-namespace ShopApp.UseCases.Services.Category
+﻿using ShopApp.Shared.DTO;
+using ShopApp.Core;
+
+public interface ICategoryService
 {
-    public interface ICategoryService
-    {
-        Task<List<Core.Category>> GetAllAsync();
-        Task<Core.Category?> GetByIdAsync(string id);
-        Task CreateAsync(Core.Category category);
-        Task UpdateAsync(Core.Category category);
-        Task DeleteAsync(string id);
-    }
+    Task<List<CategoryDTO>> GetAllAsync();
+    Task<CategoryDTO?> GetByIdAsync(Guid id);
+    Task CreateAsync(CategoryDTO category);
+    Task UpdateAsync(CategoryDTO category);
+    Task DeleteAsync(Guid id);
+    Task<List<Book>> GetBooksForCategoryAsync(Guid categoryId);
 }

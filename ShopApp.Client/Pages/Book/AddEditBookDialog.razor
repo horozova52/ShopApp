@@ -1,6 +1,5 @@
-﻿@using ShopApp.Core
+﻿@using ShopApp.Shared.DTO
 @using MudBlazor
-@using ShopApp.UseCases.Services
 @inject HttpClient Http
 
 <MudDialog>
@@ -27,17 +26,14 @@
                                   Variant="Variant.Outlined"
                                   Required="true" />
                 </MudItem>
-
-                
                 <MudItem xs="12">
-                    <MudSelect T="string" Label="Category" @bind-Value="book.CategoryId" Variant="Variant.Outlined" Required="true">
-                @foreach (var cat in categories)
-                {
-                            <MudSelectItem Value="@cat.Id">@cat.Name</MudSelectItem>
-                }
+                    <MudSelect T="CategoryDTO" Label="Category" @bind-Value="selectedCategory" Variant="Variant.Outlined" Required="true">
+                        @foreach (var cat in categories)
+                        {
+                            <MudSelectItem Value="@cat">@cat.Name</MudSelectItem>
+                        }
                     </MudSelect>
-                </MudItem> 
-                
+                </MudItem>
             </MudGrid>
         </EditForm>
     </DialogContent>
@@ -49,7 +45,7 @@
 
 @code {
     [CascadingParameter]
-    MudDialogInstance MudDialog { get; set; }
+    public MudDialogInstance MudDialog { get; set; }
 
     [Parameter]
     public Guid Id { get; set; }
@@ -57,41 +53,38 @@
     [Parameter]
     public Func<Task> Callback { get; set; }
 
-    public Book book = new();
+    private BookDTO book = new();
+    private List<CategoryDTO> categories = new();
+    private CategoryDTO selectedCategory = new();
 
-    private List<Category> categories = new();
-
-    void Cancel() => MudDialog.Cancel();
-
-    private bool _disposed;
+    private void Cancel() => MudDialog.Cancel();
 
     protected override async Task OnInitializedAsync()
     {
-        try
-        {
-            categories = await Http.GetFromJsonAsync<List<Category>>("api/category");
+        categories = await Http.GetFromJsonAsync<List<CategoryDTO>>("api/category") ?? new();
 
-            if (Id != Guid.Empty)
-            {
-                var existingBook = await Http.GetFromJsonAsync<Book>($"api/book/{Id}");
-                book = existingBook ?? new Book();
-            }
-            else
-            {
-                book = new Book
-                    {
-                        CategoryId = categories.FirstOrDefault()?.Id ?? string.Empty
-                    };
-            }
-        }
-        catch (Exception ex)
+        if (Id != Guid.Empty)
         {
-            Console.WriteLine($"🔥 Eroare la inițializare dialog: {ex.Message}");
+            book = await Http.GetFromJsonAsync<BookDTO>($"api/book/{Id}") ?? new BookDTO();
+            selectedCategory = categories.FirstOrDefault(c => c.Id == book.CategoryId) ?? new CategoryDTO();
+        }
+        else
+        {
+            book = new BookDTO();
+            selectedCategory = categories.FirstOrDefault() ?? new CategoryDTO();
         }
     }
 
     private async Task Save()
     {
+        if (selectedCategory == null)
+        {
+            Console.WriteLine("⚠️ Nicio categorie selectată.");
+            return;
+        }
+
+        book.CategoryId = selectedCategory.Id;
+
         try
         {
             if (Id != Guid.Empty)

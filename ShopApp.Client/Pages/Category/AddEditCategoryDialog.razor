@@ -1,4 +1,4 @@
-﻿@using ShopApp.Core
+﻿@using ShopApp.Shared.DTO
 @using MudBlazor
 @using ShopApp.UseCases.Services
 @inject HttpClient Http
@@ -8,13 +8,6 @@
         <EditForm Model="category" OnValidSubmit="Save">
             <DataAnnotationsValidator />
             <MudGrid>
-                <MudItem xs="12">
-                    <MudTextField @bind-Value="category.Id"
-                                  Label="Id"
-                                  InputType="InputType.Number"
-                                  Variant="Variant.Outlined"
-                                  Required="true" />
-                </MudItem>
                 <MudItem xs="12">
                     <MudTextField @bind-Value="category.Name"
                                   Label="Name"
@@ -27,7 +20,6 @@
                                   Variant="Variant.Outlined"
                                   Required="true" />
                 </MudItem>
-
             </MudGrid>
         </EditForm>
     </DialogContent>
@@ -39,38 +31,36 @@
 
 @code {
     [CascadingParameter]
-    MudDialogInstance MudDialog { get; set; }
+    public MudDialogInstance MudDialog { get; set; }
 
     [Parameter]
-    public string Id { get; set; }
+    public Guid Id { get; set; }
 
     [Parameter]
     public Func<Task> Callback { get; set; }
 
-    public Category category = new();
+    public CategoryDTO category = new();
 
-    private List<Category> categories = new();
-
-    void Cancel() => MudDialog.Cancel();
-
-    private bool _disposed;
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            if (!string.IsNullOrEmpty(Id))
+            if (Id != Guid.Empty)
             {
-                var existing = await Http.GetFromJsonAsync<Category>($"api/category/{Id}");
-                category = existing ?? new Category();
+                var existing = await Http.GetFromJsonAsync<CategoryDTO>($"api/category/{Id}");
+                category = existing ?? new CategoryDTO();
             }
             else
             {
-                category = new Category();
+                category = new CategoryDTO
+                    {
+                        Id = Guid.NewGuid()
+                    };
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[CategoryDialog] Init error: {ex.Message}");
+            Console.WriteLine($"[AddEditCategoryDialog] Init error: {ex.Message}");
         }
     }
 
@@ -78,7 +68,7 @@
     {
         try
         {
-            if (!string.IsNullOrEmpty(Id))
+            if (Id != Guid.Empty)
                 await Http.PutAsJsonAsync($"api/category/{category.Id}", category);
             else
                 await Http.PostAsJsonAsync("api/category", category);
@@ -93,4 +83,6 @@
             Console.WriteLine($"[AddEditCategoryDialog] Error on save: {ex.Message}");
         }
     }
+
+    private void Cancel() => MudDialog.Cancel();
 }

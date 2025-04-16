@@ -1,6 +1,7 @@
-﻿using ShopApp.Infrastructure;
-using ShopApp.Core;
-using Microsoft.EntityFrameworkCore; 
+﻿using Microsoft.EntityFrameworkCore;
+using ShopApp.Infrastructure;
+using ShopApp.Shared.DTO;
+using ShopApp.UseCases.Mapping;
 
 namespace ShopApp.UseCases.Services.Category
 {
@@ -13,33 +14,50 @@ namespace ShopApp.UseCases.Services.Category
             _context = context;
         }
 
-        public async Task<List<Core.Category>> GetAllAsync() =>
-            await _context.Categories.Include(c => c.Books).ToListAsync();
-
-        public async Task<Core.Category?> GetByIdAsync(string id) =>
-            await _context.Categories.Include(c => c.Books)
-                .FirstOrDefaultAsync(c => c.Id == id);
-
-        public async Task CreateAsync(Core.Category category)
+        public async Task<List<CategoryDTO>> GetAllAsync()
         {
+            var categories = await _context.Categories.ToListAsync();
+            return categories.Select(CategoryMapping.ToDto).ToList();
+        }
+
+
+        public async Task<CategoryDTO?> GetByIdAsync(Guid id)
+        {
+            var category = await _context.Categories.FirstOrDefaultAsync(c => c.Id == id);
+            return category == null ? null : CategoryMapping.ToDto(category);
+        }
+        public async Task CreateAsync(CategoryDTO dto)
+        {
+            var category = CategoryMapping.ToEntity(dto);
             _context.Categories.Add(category);
             await _context.SaveChangesAsync();
         }
 
-        public async Task UpdateAsync(Core.Category category)
+        public async Task UpdateAsync(CategoryDTO dto)
         {
+            var category = CategoryMapping.ToEntity(dto);
             _context.Categories.Update(category);
             await _context.SaveChangesAsync();
         }
 
-        public async Task DeleteAsync(string id)
+        public async Task DeleteAsync(Guid id)
         {
-            var category = await GetByIdAsync(id);
+            var category = await _context.Categories.FindAsync(id);
             if (category != null)
             {
                 _context.Categories.Remove(category);
                 await _context.SaveChangesAsync();
             }
         }
+
+        public async Task<List<Core.Book>> GetBooksForCategoryAsync(Guid categoryId)
+        {
+            var category = await _context.Categories
+                .Include(c => c.Books)
+                .FirstOrDefaultAsync(c => c.Id == categoryId);
+
+            return category?.Books ?? new List<Core.Book>();
+        }
+
     }
 }
