@@ -14,6 +14,8 @@ namespace ShopApp.Shared.DTO
         public string Body { get; set; }
         public bool IsHtml { get; set; }
         public List<string>? AttachmentsBase64 { get; set; }
+        public List<string>? AttachmentFileNames { get; set; }
+
     }
 
 }

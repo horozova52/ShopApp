@@ -11,6 +11,8 @@ namespace ShopApp.UseCases.Services.Email
     {
         Task SendEmailAsync(EmailMessageDTO message);
         Task<List<EmailMessageDTO>> ReceiveEmailsAsync();
+        Task ReplyToEmailAsync(EmailReplyDTO reply);
+
     }
 
 }

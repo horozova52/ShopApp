@@ -26,19 +26,33 @@ namespace ShopApp.UseCases.Services.Email
             email.From.Add(MailboxAddress.Parse(message.From));
             email.To.Add(MailboxAddress.Parse(message.To));
             email.Subject = message.Subject;
-            email.Body = new TextPart(message.IsHtml ? TextFormat.Html : TextFormat.Plain)
+
+            var builder = new BodyBuilder
             {
-                Text = message.Body
+                HtmlBody = message.IsHtml ? message.Body : null,
+                TextBody = !message.IsHtml ? message.Body : null
             };
 
-            // Trimite emailul
+            // ATAȘAMENTE
+            if (message.AttachmentsBase64 != null && message.AttachmentFileNames != null)
+            {
+                for (int i = 0; i < message.AttachmentsBase64.Count; i++)
+                {
+                    var bytes = Convert.FromBase64String(message.AttachmentsBase64[i]);
+                    var name = message.AttachmentFileNames[i];
+                    builder.Attachments.Add(name, bytes);
+                }
+            }
+
+            email.Body = builder.ToMessageBody();
+
             using var smtp = new SmtpClient();
             await smtp.ConnectAsync(_config["SmtpSettings:Server"], int.Parse(_config["SmtpSettings:Port"]), SecureSocketOptions.StartTls);
             await smtp.AuthenticateAsync(_config["SmtpSettings:Username"], _config["SmtpSettings:Password"]);
             await smtp.SendAsync(email);
             await smtp.DisconnectAsync(true);
 
-            // Salvează emailul în DB
+            // Salvăm emailul (doar fără atașamente în DB momentan)
             var emailEntity = new EmailMessage
             {
                 Id = Guid.NewGuid(),
@@ -47,12 +61,27 @@ namespace ShopApp.UseCases.Services.Email
                 Subject = message.Subject,
                 Body = message.Body,
                 DateSent = DateTime.UtcNow,
-                IsHtml = message.IsHtml
+                IsHtml = message.IsHtml,
+                IsReceived = false
             };
 
             _context.EmailMessages.Add(emailEntity);
             await _context.SaveChangesAsync();
         }
+        public async Task ReplyToEmailAsync(EmailReplyDTO reply)
+        {
+            var message = new EmailMessageDTO
+            {
+                From = reply.From,
+                To = reply.To,
+                Subject = reply.Subject,
+                Body = reply.Body,
+                IsHtml = reply.IsHtml
+            };
+
+            await SendEmailAsync(message);
+        }
+
 
         public async Task<List<EmailMessageDTO>> ReceiveEmailsAsync()
         {

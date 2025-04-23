@@ -182,3 +182,15 @@ header {
     text-align: center;
     width: 100px;
 }
+
+/* loader centrat */
+.spinner-border {
+    display: block;
+    margin: auto;
+}
+
+/* auto?wrap pe mobil */
+td {
+    white-space: pre-wrap;
+    word-break: break-word;
+}
