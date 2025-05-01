@@ -194,3 +194,33 @@ td {
     white-space: pre-wrap;
     word-break: break-word;
 }
+
+a.download-btn {
+    background-color: #4caf50;
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: 5px;
+    font-size: 13px;
+    text-decoration: none;
+    display: inline-block;
+    cursor: pointer;
+    line-height: 1.4;
+    white-space: nowrap;
+    transition: background-color .3s ease;
+}
+
+    a.download-btn:hover {
+        background-color: #43a047;
+    }
+
+.email-body-preview {
+    max-height: 200px;
+    overflow-y: auto;
+    background-color: #f9f9f9;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    white-space: pre-wrap;
+    font-size: 13px;
+    font-family: 'Segoe UI', sans-serif;
+}

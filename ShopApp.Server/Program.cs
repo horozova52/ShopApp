@@ -12,6 +12,7 @@ using ShopApp.UseCases.Services.Book;
 using ShopApp.UseCases.Services.Category;
 using ShopApp.UseCases.Services.Email;
 using ShopApp.UseCases.Services.Email.IMAP;
+using ShopApp.UseCases.Services.Email.POP3;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -70,6 +71,7 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IBookService, BookService>();
 builder.Services.AddScoped<IImapService, ImapService>();
+builder.Services.AddScoped<IPop3Service, Pop3Service>();
 
 
 // --- MudBlazor ---

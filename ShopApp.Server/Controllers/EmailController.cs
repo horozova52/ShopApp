@@ -5,6 +5,7 @@ using ShopApp.Core;
 using ShopApp.Shared.DTO;
 using ShopApp.UseCases.Services.Email;
 using ShopApp.UseCases.Services.Email.IMAP;
+using ShopApp.UseCases.Services.Email.POP3;
 
 namespace ShopApp.Server.Controllers
 {
@@ -16,11 +17,13 @@ namespace ShopApp.Server.Controllers
         private readonly IEmailService _service;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IImapService _imapService;
-        public EmailController(IEmailService service, IImapService imapService, UserManager<ApplicationUser> userManager)
+        private readonly IPop3Service _pop3Service;
+        public EmailController(IEmailService service, IPop3Service pop3Service, IImapService imapService, UserManager<ApplicationUser> userManager)
         {
             _service = service;
             _userManager = userManager;
             _imapService = imapService;
+            _pop3Service = pop3Service;
         }
 
         [HttpPost("send")]
@@ -67,6 +70,19 @@ namespace ShopApp.Server.Controllers
                 return NotFound("No messages found or authentication failed.");
 
             return Ok(result);
+        }
+        [HttpGet("inbox-pop3")]
+        public async Task<ActionResult<List<EmailMessageDTO>>> GetInboxViaPop3(string userEmail, string password)
+        {
+            try
+            {
+                var emails = await _pop3Service.GetInboxPop3Async(userEmail, password);
+                return Ok(emails);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
         }
 
 
