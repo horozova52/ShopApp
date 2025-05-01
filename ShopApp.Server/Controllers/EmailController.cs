@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using ShopApp.Core;
 using ShopApp.Shared.DTO;
 using ShopApp.UseCases.Services.Email;
+using ShopApp.UseCases.Services.Email.IMAP;
 
 namespace ShopApp.Server.Controllers
 {
@@ -14,11 +15,12 @@ namespace ShopApp.Server.Controllers
     {
         private readonly IEmailService _service;
         private readonly UserManager<ApplicationUser> _userManager;
-
-        public EmailController(IEmailService service, UserManager<ApplicationUser> userManager)
+        private readonly IImapService _imapService;
+        public EmailController(IEmailService service, IImapService imapService, UserManager<ApplicationUser> userManager)
         {
             _service = service;
             _userManager = userManager;
+            _imapService = imapService;
         }
 
         [HttpPost("send")]
@@ -57,6 +59,16 @@ namespace ShopApp.Server.Controllers
             return Ok(myEmails);
         }
 
-       
+        [HttpGet("inbox-imap")]
+        public async Task<ActionResult<List<EmailMessageDTO>>> GetInboxImap([FromQuery] string email, [FromQuery] string password)
+        {
+            var result = await _imapService.GetInboxAsync(email, password);
+            if (result == null || result.Count == 0)
+                return NotFound("No messages found or authentication failed.");
+
+            return Ok(result);
+        }
+
+
     }
 }

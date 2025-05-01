@@ -23,35 +23,48 @@ else
 {
     <div class="container-lg">
         <h2 class="my-3">Inbox</h2>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="RefreshInbox" StartIcon="@Icons.Material.Filled.Refresh">
+            Refresh
+        </MudButton>
 
-        @if (emails?.Any() != true)
-        {
-            <p>Nu ai mesaje.</p>
-        }
-        else
-        {
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>De la</th>
-                            <th>Subiect</th>
-                            <th class="w-50">Conținut</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var e in emails!)
+        <MudTable Items="emails" Hover="true" Elevation="1" Dense="true" Bordered="true">
+            <HeaderContent>
+                <MudTh>De la</MudTh>
+                <MudTh>Subiect</MudTh>
+                <MudTh>Conținut</MudTh>
+                <MudTh>Atașamente</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="De la">@context.From</MudTd>
+                <MudTd DataLabel="Subiect">@context.Subject</MudTd>
+                <MudTd DataLabel="Conținut">@Truncate(context.Body, 80)</MudTd>
+                <MudTd>
+                    @if (context.AttachmentsBase64 != null && context.AttachmentsBase64.Count > 0)
+                    {
+                        @for (int i = 0; i < context.AttachmentsBase64.Count; i++)
                         {
-                            <tr>
-                                <td>@e.From</td>
-                                <td>@e.Subject</td>
-                                @* <td>@Truncate(e.Body, 120)</td> *@
-                            </tr>
+                            var base64 = context.AttachmentsBase64[i];
+                            var fileName = context.AttachmentFileNames != null && i < context.AttachmentFileNames.Count
+                            ? context.AttachmentFileNames[i]
+                            : $"file{i}";
+
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small"
+                                       StartIcon="@Icons.Material.Filled.Download"
+                                       Style="top: 4px; margin-right: 4px;"
+                                       Href="@GetDownloadUrl(base64, fileName)"
+                                       Download="@fileName">
+                                Descarcă @fileName
+                            </MudButton>
+                          
+
                         }
-                    </tbody>
-                </table>
-            </div>
-        }
+
+                    }
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+
+
     </div>
 }
 
@@ -60,9 +73,9 @@ else
 @code {
     private bool isLoading = true;
     private List<EmailMessageDTO>? emails;
-    // private static string Truncate(string? text, int len) =>
-    //     string.IsNullOrEmpty(text) ? string.Empty
-    //     : (text.Length <= len ? text : text[..len] + "…");
+    private static string Truncate(string? text, int len) =>
+        string.IsNullOrEmpty(text) ? string.Empty
+        : (text.Length <= len ? text : text[..len] + "…");
     protected override async Task OnInitializedAsync()
     {
         var state = await AuthState.GetAuthenticationStateAsync();
@@ -83,5 +96,38 @@ else
 
         isLoading = false;         
     }
+    private string GetDownloadUrl(string base64, string fileName)
+    {
+        var mimeType = GetMimeTypeFromFileName(fileName);
+        return $"data:{mimeType};base64,{base64}";
+    }
+
+    private string GetMimeTypeFromFileName(string fileName)
+    {
+        var ext = Path.GetExtension(fileName)?.ToLowerInvariant();
+        return ext switch
+        {
+            ".pdf" => "application/pdf",
+            ".docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            ".jpg" => "image/jpeg",
+            ".png" => "image/png",
+            _ => "application/octet-stream"
+        };
+    }
+    private async Task RefreshInbox()
+    {
+        isLoading = true;
+        var state = await AuthState.GetAuthenticationStateAsync();
+        var user = state.User;
+        var appUser = await UserManager.GetUserAsync(user);
+
+        emails = (await EmailSrv.ReceiveEmailsAsync())
+            .Where(e => e.To.Equals(appUser.Email, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        isLoading = false;
+    }
+
+
 
 }

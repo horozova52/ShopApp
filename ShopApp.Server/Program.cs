@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.DataProtection;
+﻿using MailKit;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
@@ -10,15 +11,9 @@ using ShopApp.Server.Components.Account;
 using ShopApp.UseCases.Services.Book;
 using ShopApp.UseCases.Services.Category;
 using ShopApp.UseCases.Services.Email;
+using ShopApp.UseCases.Services.Email.IMAP;
 
 var builder = WebApplication.CreateBuilder(args);
-
-var keyRingPath = Path.Combine(builder.Environment.ContentRootPath, "KeyRing");
-
-builder.Services.AddDataProtection()
-    .PersistKeysToFileSystem(new DirectoryInfo(keyRingPath))   
-    .SetApplicationName("ShopApp");
-
 
 // --- Identity & Authentication ---
 builder.Services.AddIdentityCore<ApplicationUser>(options =>
@@ -37,24 +32,11 @@ builder.Services.AddAuthentication(options =>
 .AddIdentityCookies();
 
 
-
-
 builder.Services.ConfigureApplicationCookie(o =>
 {
     o.Cookie.SameSite = SameSiteMode.None;
     o.Cookie.SecurePolicy = CookieSecurePolicy.Always;
     o.Cookie.HttpOnly = true;
-    // dacă vrei 401 pe API în loc de redirect la /Account/Login
-    o.Events.OnRedirectToLogin = ctx =>
-    {
-        if (ctx.Request.Path.StartsWithSegments("/api"))
-        {
-            ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            return Task.CompletedTask;
-        }
-        ctx.Response.Redirect(ctx.RedirectUri);
-        return Task.CompletedTask;
-    };
 });
 
 
@@ -82,23 +64,13 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddControllers().AddJsonOptions(x =>
     x.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles);
 
-//// --- CORS ---
-//builder.Services.AddCors(options =>
-//{
-//    options.AddPolicy("AllowBlazorClient", policy =>
-//    {
-//        policy.WithOrigins("https://localhost:5001", "http://localhost:5000")
-//              .AllowAnyHeader()
-//              .AllowAnyMethod()
-//              .AllowCredentials();
-//    });
-//});
-
 // --- Services ---
 builder.Services.AddScoped<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IBookService, BookService>();
+builder.Services.AddScoped<IImapService, ImapService>();
+
 
 // --- MudBlazor ---
 builder.Services.AddMudServices();
@@ -123,6 +95,7 @@ builder.Services.AddResponseCompression(opts =>
 {
     opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[] { "application/octet-stream" });
 });
+builder.Services.AddHttpContextAccessor();
 
 // --- Swagger ---
 builder.Services.AddEndpointsApiExplorer();

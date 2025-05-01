@@ -6,6 +6,9 @@ using Microsoft.Extensions.Configuration;
 using ShopApp.Shared.DTO;
 using ShopApp.Core;
 using ShopApp.Infrastructure;
+using ShopApp.UseCases.Services.Email.IMAP;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 
 namespace ShopApp.UseCases.Services.Email
 {
@@ -13,11 +16,19 @@ namespace ShopApp.UseCases.Services.Email
     {
         private readonly IConfiguration _config;
         private readonly ApplicationDbContext _context;
+        private readonly IImapService _imapService;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IHttpContextAccessor _httpContext;
 
-        public EmailService(IConfiguration config, ApplicationDbContext context)
+        public EmailService(IImapService imapService, IConfiguration config, ApplicationDbContext context,
+                      UserManager<ApplicationUser> userManager,
+                      IHttpContextAccessor httpContext)
         {
+            _imapService = imapService;
             _config = config;
             _context = context;
+            _userManager = userManager;
+            _httpContext = httpContext;
         }
 
         public async Task SendEmailAsync(EmailMessageDTO message)
@@ -81,23 +92,38 @@ namespace ShopApp.UseCases.Services.Email
 
             await SendEmailAsync(message);
         }
-
-
         public async Task<List<EmailMessageDTO>> ReceiveEmailsAsync()
         {
-            return await Task.FromResult(
-                _context.EmailMessages
-                    .OrderByDescending(e => e.DateSent)
-                    .Select(e => new EmailMessageDTO
-                    {
-                        From = e.From,
-                        To = e.To,
-                        Subject = e.Subject,
-                        Body = e.Body,
-                        IsHtml = e.IsHtml
-                    })
-                    .ToList()
-            );
+            var user = _httpContext.HttpContext?.User;
+            if (user == null)
+                return new List<EmailMessageDTO>();
+
+            var appUser = await _userManager.GetUserAsync(user);
+            if (appUser == null || string.IsNullOrEmpty(appUser.Email))
+                return new List<EmailMessageDTO>();
+
+            var password = _config["ImapSettings:Password"];
+
+            return await _imapService.GetInboxAsync(appUser.Email, password);
         }
+
+
+
+        //public async Task<List<EmailMessageDTO>> ReceiveEmailsAsync()
+        //{
+        //    return await Task.FromResult(
+        //        _context.EmailMessages
+        //            .OrderByDescending(e => e.DateSent)
+        //            .Select(e => new EmailMessageDTO
+        //            {
+        //                From = e.From,
+        //                To = e.To,
+        //                Subject = e.Subject,
+        //                Body = e.Body,
+        //                IsHtml = e.IsHtml
+        //            })
+        //            .ToList()
+        //    );
+        //}
     }
 }
