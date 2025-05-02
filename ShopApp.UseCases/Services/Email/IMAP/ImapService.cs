@@ -1,6 +1,5 @@
 ﻿using MailKit;
 using MailKit.Net.Imap;
-using MailKit.Search;
 using MailKit.Security;
 using Microsoft.Extensions.Configuration;
 using MimeKit;
@@ -16,32 +15,30 @@ namespace ShopApp.UseCases.Services.Email.IMAP
         {
             _config = config;
         }
-        private (string server, int port) GetImapServer(string email)
+
+        private (string email, string password, string server, int port) GetImapCredentials(string userEmail)
         {
-            if (email.EndsWith("@gmail.com", StringComparison.OrdinalIgnoreCase))
-                return ("imap.gmail.com", 993);
-            else if (email.EndsWith("@mail.ru", StringComparison.OrdinalIgnoreCase))
-                return ("imap.mail.ru", 993);
-            else
-                Console.WriteLine($"Email primit: {email}");
+            var accounts = _config.GetSection("ImapAccounts").Get<List<ImapAccountConfigDTO>>();
+            var account = accounts.FirstOrDefault(a => a.Email.Equals(userEmail, StringComparison.OrdinalIgnoreCase));
+            if (account == null)
+                throw new NotSupportedException("Nu există un cont IMAP configurat pentru acest email.");
 
-            throw new NotSupportedException("Provider IMAP necunoscut");
-
+            return (account.Email, account.Password, account.Server, account.Port);
         }
 
         public async Task<List<EmailMessageDTO>> GetInboxAsync(string userEmail, string password)
         {
             var messages = new List<EmailMessageDTO>();
-            var (server, port) = GetImapServer(userEmail);
+            var (email, pwd, server, port) = GetImapCredentials(userEmail);
 
             using var client = new ImapClient();
             await client.ConnectAsync(server, port, SecureSocketOptions.SslOnConnect);
-            await client.AuthenticateAsync(userEmail, password);
+            await client.AuthenticateAsync(email, pwd);
 
             var inbox = client.Inbox;
             await inbox.OpenAsync(FolderAccess.ReadOnly);
 
-            int maxToLoad = 10; 
+            int maxToLoad = 20;
             int startIndex = Math.Max(0, inbox.Count - maxToLoad);
 
             for (int i = startIndex; i < inbox.Count; i++)
@@ -75,11 +72,10 @@ namespace ShopApp.UseCases.Services.Email.IMAP
                 });
             }
 
-
             await client.DisconnectAsync(true);
             return messages;
         }
-
-
     }
+
+
 }

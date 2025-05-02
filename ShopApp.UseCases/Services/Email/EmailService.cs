@@ -36,6 +36,11 @@ namespace ShopApp.UseCases.Services.Email
             var email = new MimeMessage();
             email.From.Add(MailboxAddress.Parse(message.From));
             email.To.Add(MailboxAddress.Parse(message.To));
+            if (!string.IsNullOrEmpty(message.ReplyTo))
+            {
+                email.ReplyTo.Add(new MailboxAddress("", message.ReplyTo));
+            }
+
             email.Subject = message.Subject;
 
             var builder = new BodyBuilder
@@ -44,7 +49,7 @@ namespace ShopApp.UseCases.Services.Email
                 TextBody = !message.IsHtml ? message.Body : null
             };
 
-            // ATAȘAMENTE
+            // ATASAMENTE
             if (message.AttachmentsBase64 != null && message.AttachmentFileNames != null)
             {
                 for (int i = 0; i < message.AttachmentsBase64.Count; i++)
@@ -63,7 +68,6 @@ namespace ShopApp.UseCases.Services.Email
             await smtp.SendAsync(email);
             await smtp.DisconnectAsync(true);
 
-            // Salvăm emailul (doar fără atașamente în DB momentan)
             var emailEntity = new EmailMessage
             {
                 Id = Guid.NewGuid(),
@@ -87,11 +91,14 @@ namespace ShopApp.UseCases.Services.Email
                 To = reply.To,
                 Subject = reply.Subject,
                 Body = reply.Body,
-                IsHtml = reply.IsHtml
+                IsHtml = reply.IsHtml,
+                AttachmentsBase64 = reply.AttachmentsBase64,
+                AttachmentFileNames = reply.AttachmentFileNames
             };
 
             await SendEmailAsync(message);
         }
+
         public async Task<List<EmailMessageDTO>> ReceiveEmailsAsync()
         {
             var user = _httpContext.HttpContext?.User;
@@ -108,22 +115,5 @@ namespace ShopApp.UseCases.Services.Email
         }
 
 
-
-        //public async Task<List<EmailMessageDTO>> ReceiveEmailsAsync()
-        //{
-        //    return await Task.FromResult(
-        //        _context.EmailMessages
-        //            .OrderByDescending(e => e.DateSent)
-        //            .Select(e => new EmailMessageDTO
-        //            {
-        //                From = e.From,
-        //                To = e.To,
-        //                Subject = e.Subject,
-        //                Body = e.Body,
-        //                IsHtml = e.IsHtml
-        //            })
-        //            .ToList()
-        //    );
-        //}
     }
 }

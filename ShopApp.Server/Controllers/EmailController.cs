@@ -72,7 +72,7 @@ namespace ShopApp.Server.Controllers
             return Ok(result);
         }
         [HttpGet("inbox-pop3")]
-        public async Task<ActionResult<List<EmailMessageDTO>>> GetInboxViaPop3(string userEmail, string password)
+        public async Task<ActionResult<List<EmailMessageDTO>>> GetInboxPop3Async(string userEmail, string password)
         {
             try
             {
