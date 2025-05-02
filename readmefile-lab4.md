@@ -35,34 +35,68 @@ ShopApp este o aplicație pentru gestionarea categoriilor și produselor într-u
 ### Produse
 
 1. **Adăugarea de produse noi într-o categorie**  
-   - Utilizatorii pot adăuga produse noi într-o categorie existentă.  
-   - Nivel de prioritate: **2**
+   - Utilizatorii pot adăuga produse noi asociate unei categorii specifice.  
+   - **Nivel de prioritate:** **2**
 
 2. **Vizualizarea listei de produse dintr-o categorie**  
-   - Aplicația poate afișa toate produsele asociate unei categorii specifice.  
-   - Nivel de prioritate: **1**
+   - Aplicația permite afișarea tuturor produselor asociate unei categorii.  
+   - **Nivel de prioritate:** **1**
 
 ---
 
-## Tehnologii utilizate
+## Implementare
 
-- **HTML**: 57.9% din proiect
-- **C#**: 35.4% din proiect
-- **CSS**: 6.7% din proiect
+### Interfață utilizator
+- Utilizarea framework-ului **MudBlazor** pentru crearea unei interfețe moderne și responsive.
+- **Dialoguri interactive** pentru adăugarea, editarea și vizualizarea datelor.
+
+### Backend
+- Backend-ul este construit folosind **ASP.NET Core** și expune un set de API-uri REST pentru gestionarea categoriilor și produselor.
+- Servicii disponibile pentru operații CRUD, cum ar fi crearea, citirea, actualizarea și ștergerea datelor.
+
+### Funcționalități tehnice
+- **Mapări DTO** pentru a facilita transferul de date între client și server.
+- Conexiune cu baza de date pentru gestionarea persistentă a datelor despre categorii și produse.
 
 ---
 
-## Configurare și utilizare
+## Ghid de utilizare
 
-1. Clonează acest repository:
+### Pornirea aplicației
+
+1. Clonați repository-ul:
    ```bash
    git clone https://github.com/horozova52/ShopApp.git
    ```
-2. Deschide proiectul în mediul de dezvoltare preferat (ex: Visual Studio).
-3. Rulează aplicația și folosește interfața pentru a accesa funcționalitățile descrise mai sus.
+2. Deschideți proiectul în **Visual Studio** sau editorul preferat.
+3. Configurați baza de date în fișierul `appsettings.json`.
+4. Rulați aplicația:
+   ```bash
+   dotnet run
+   ```
+
+### Utilizarea aplicației
+
+- **Categorii**: Navigați la secțiunea categorii pentru a adăuga, edita sau șterge categorii.
+- **Produse**: Utilizați funcționalitatea de asociere a produselor cu categoriile pentru o administrare eficientă.
 
 ---
 
-## Contribuții
+## API-uri , care pot fi testate in Swagger
 
-Contribuțiile sunt binevenite! Trimite un pull request sau deschide un issue pentru sugestii sau bug-uri.
+### Categorii
+- `GET /api/category` - Obține toate categoriile.
+- `GET /api/category/{id}` - Detalii despre o categorie.
+- `POST /api/category` - Creează o categorie nouă.
+- `PUT /api/category/{id}` - Actualizează o categorie.
+- `DELETE /api/category/{id}` - Șterge o categorie.
+- `GET /api/category/{id}/books` - Obține lista de produse dintr-o categorie.
+
+### Produse
+- `GET /api/book` - Obține toate produsele.
+- `GET /api/book/{id}` - Detalii despre un produs.
+- `POST /api/book` - Creează un produs.
+- `PUT /api/book/{id}` - Actualizează un produs.
+- `DELETE /api/book/{id}` - Șterge un produs.
+
+---
